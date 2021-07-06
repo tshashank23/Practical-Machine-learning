@@ -1,0 +1,86 @@
+---
+title: "Practical Machine learning"
+author: "Shashank T"
+date: "7/6/2021"
+output: html_document
+---
+
+```{r}
+
+library(caret)
+library(rattle)
+
+## Cleaned the training data sets by removing unnecessary columns and making errorneous data as 0 before reading it into R.
+
+a<-  read.csv("pml-training-clean.csv")
+
+## Removing the first 6 columns which are character type with no relevancy to the data set
+train_master<- a[,7:59]
+  
+test_master<- read.csv("pml-testing.csv")
+
+#performing cross validation by random sub-sampling. Taking the training data set and splitting it into training and testing data sets with split ratio of 75% between the two sets
+
+inTrain = createDataPartition(train_master$classe, p = 0.7)[[1]]
+
+training = train_master[ inTrain,]
+
+testing = train_master[- inTrain,]
+```
+
+```{r}
+## building model using the variables directly using normal decision tree or Rpart
+
+model <- train(classe ~.,method="rpart", data=training)
+
+b<- predict(model, testing)
+
+e<- as.factor(testing$classe)
+confusionMatrix(e,b)
+
+## Accracy of this model comes to ~49.5% 
+
+```
+
+```{r}
+#### build model using random forest
+
+model_rf <- train(classe ~.,method="rf", data=training)
+b_rf<- predict(model_rf, testing)
+
+e_rf<- as.factor(testing$classe)
+confusionMatrix(e_rf,b_rf)
+
+fancyRpartPlot(model_rf)
+
+d_rf<- predict(model_rf,test_master)
+view(d_rf)
+
+## Accracy of this model comes to ~99.8% 
+```
+
+```{r}
+#### build model using linear discremant analysis
+
+model_lda <- train(classe ~.,method="lda", data=training)
+
+b_lda<- predict(model_lda, testing)
+
+confusionMatrix(e,b_lda)
+
+## Accracy of this model comes to ~68.5% 
+```
+
+```{r}
+## build model using gradient boosting
+
+model_gbm <- train(classe ~.,method="gbm", data=training)
+
+b_gbm<- predict(model_gbm, testing)
+
+confusionMatrix(e,b_gbm)
+
+## Accracy of this model comes to 96.3% 
+```
+
+
